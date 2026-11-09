@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gloves | Periféricos para oficina y home office en Buenos Aires</title>
+  <meta name="description" content="Teclados, mouses, webcams y auriculares para pymes, estudios y home office en Buenos Aires. Kits listos, factura y cambio ágil. Pedí tu cotización por WhatsApp.">
+  <meta name="theme-color" content="#1F4D3A">
+  <!-- Reemplazá TU-DOMINIO por tu dirección real cuando publiques -->
+  <link rel="canonical" href="https://TU-DOMINIO.com.ar/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_AR">
+  <meta property="og:site_name" content="Gloves">
+  <meta property="og:title" content="Gloves | Periféricos para oficina y home office en Buenos Aires">
+  <meta property="og:description" content="Kits de teclado, mouse, webcam y auriculares con factura y cambio ágil. Pedí tu cotización por WhatsApp.">
+  <meta property="og:url" content="https://TU-DOMINIO.com.ar/">
+  <!-- Cuando tengas el logo: <meta property="og:image" content="https://TU-DOMINIO.com.ar/og.png"> -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "Gloves",
+    "description": "Periféricos y accesorios para oficina, teletrabajo y estudio, con factura y garantía.",
+    "url": "https://TU-DOMINIO.com.ar/",
+    "telephone": "+5491178142528",
+    "areaServed": { "@type": "AdministrativeArea", "name": "Buenos Aires, Argentina" }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Gloves, ir al inicio">Gloves</a>
+    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="nav">Menú</button>
+    <nav id="nav" class="nav" aria-label="Principal">
+      <a href="#productos">Productos</a>
+      <a href="#kits">Kits</a>
+      <a href="#servicio">Servicio</a>
+      <a href="#contacto" class="btn btn-small">Pedir cotización</a>
+    </nav>
+    <button class="cart-btn" id="cart-btn" aria-expanded="false" aria-controls="cart">Pedido (<span id="cart-count">0</span>)</button>
+  </header>
+
+  <main>
+    <section id="inicio" class="hero">
+      <div class="hero-text">
+        <h1>Tu puesto de trabajo, listo para usar.</h1>
+        <p>Periféricos para oficina y home office en Buenos Aires: teclados, mouses, webcams y auriculares. Con factura y cambio ágil si algo falla.</p>
+        <div class="actions">
+          <a class="btn" href="#productos">Ver productos</a>
+          <a class="btn btn-ghost" href="#contacto">Pedir cotización</a>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <!-- Trama atigrada: reemplazala por tu logo final -->
+        <svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice">
+          <path fill="#F5F3EE" d="M-10 14 C18 12 40 20 62 14 C44 24 20 26 -10 28 Z M-10 40 C22 36 52 46 84 38 C58 50 24 52 -10 54 Z M52 44 C60 52 66 60 64 68 C60 60 52 54 46 50 Z M-10 66 C14 64 34 70 54 66 C38 74 18 76 -10 78 Z M-10 90 C24 86 56 96 92 88 C64 100 30 102 -10 104 Z M130 60 C116 58 104 66 96 64 C108 72 118 74 130 74 Z"/>
+        </svg>
+      </div>
+    </section>
+
+    <section id="productos" class="section">
+      <h2>Periféricos para trabajar y estudiar</h2>
+      <p class="lead">Teclados, mouses, webcams, auriculares y pendrives. Filtrá por uso.</p>
+      <div class="filters" role="group" aria-label="Filtrar productos" id="filters"></div>
+      <div class="grid" id="product-grid"></div>
+    </section>
+
+    <section id="kits" class="section section-alt">
+      <h2>Kits para teletrabajo y oficina</h2>
+      <p class="lead">Combinaciones armadas de teclado, mouse, webcam y auriculares para no perder tiempo eligiendo.</p>
+      <div class="grid" id="kit-grid"></div>
+    </section>
+
+    <section id="servicio" class="section">
+      <h2>Cómo trabajamos</h2>
+      <dl class="service">
+        <div><dt>Factura</dt><dd>Emitimos factura para tu empresa o estudio.</dd></div>
+        <div><dt>Garantía</dt><dd>Si un producto falla, lo cambiamos sin vueltas. Definí acá tu plazo real.</dd></div>
+        <div><dt>Cotización por cantidad</dt><dd>Equipamos desde 1 hasta 20 puestos con precio escalonado.</dd></div>
+      </dl>
+    </section>
+
+    <section id="contacto" class="section section-alt">
+      <h2>Pedí tu cotización</h2>
+      <p class="lead">Contanos qué necesitás y te respondemos por WhatsApp.</p>
+      <form id="contact-form" class="form" novalidate>
+        <label for="nombre">Nombre</label>
+        <input id="nombre" name="nombre" type="text" autocomplete="name" required>
+        <p class="error" id="err-nombre" role="alert"></p>
+
+        <label for="tipo">Soy</label>
+        <select id="tipo" name="tipo">
+          <option>Pyme u oficina</option>
+          <option>Profesional o estudio</option>
+          <option>Particular</option>
+        </select>
+
+        <label for="mensaje">¿Qué necesitás?</label>
+        <textarea id="mensaje" name="mensaje" rows="4" required placeholder="Ej: 6 teclados y mouses inalámbricos con factura A"></textarea>
+        <p class="error" id="err-mensaje" role="alert"></p>
+
+        <button class="btn" type="submit">Enviar por WhatsApp</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Gloves. Todos los derechos reservados.</p>
+    <p><a href="https://instagram.com/TU_USUARIO" rel="noopener">Instagram</a></p>
+  </footer>
+
+  <div class="overlay" id="overlay" hidden></div>
+  <aside class="cart" id="cart" aria-labelledby="cart-title" hidden>
+    <div class="cart-head">
+      <h2 id="cart-title">Tu pedido</h2>
+      <button type="button" class="cart-close" id="cart-close" aria-label="Cerrar pedido">Cerrar</button>
+    </div>
+    <ul class="cart-items" id="cart-items"></ul>
+    <p class="cart-empty" id="cart-empty">Todavía no agregaste productos.</p>
+    <p class="cart-total" id="cart-total"></p>
+    <label for="cart-nombre">Tu nombre</label>
+    <input id="cart-nombre" type="text" autocomplete="name">
+    <label for="cart-nota">Notas (opcional)</label>
+    <textarea id="cart-nota" rows="2" placeholder="Ej: necesito factura A, entrega en Lanús"></textarea>
+    <p class="error" id="cart-error" role="alert"></p>
+    <button type="button" class="btn" id="cart-send">Enviar pedido por WhatsApp</button>
+    <button type="button" class="link-btn" id="cart-clear">Vaciar pedido</button>
+  </aside>
+
+  <script src="script.js"></script>
+</body>
+</html>
