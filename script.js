@@ -3,9 +3,26 @@ const CONFIG = {
   // Número con código de país, sin + ni espacios. Ej Argentina móvil: 5491123456789
   whatsapp: "5491178142528",
   claveCarrito: "gloves-carrito", // nombre con el que se guarda el pedido en el navegador
+  // Frase del cartel verde de arriba. Cambiala según la fecha o el producto. Vacía ("") = sin cartel.
+  promo: "Armá tu setup para las fiestas: kits con factura y cambio por falla.",
+  // Frases que se alternan en la pestaña del navegador cuando la persona está en otra pestaña.
+  // Editalas cuando quieras. Dejá la lista vacía ([]) para desactivar el efecto.
+  titulosAusente: ["¡Volvé! Tus productos te esperan", "Pedí tu cotización por WhatsApp"],
   maxPorItem: 99,
+  // Fase 2: cuando tengas la función serverless que crea el cobro en Mercado Pago, pegá acá su URL.
+  // Mientras esté vacío, el pedido se envía por WhatsApp y vos mandás el link de pago.
+  checkoutUrl: "",
 };
 
+// Zonas de entrega. costo: número en pesos, 0 = gratis, null = "A confirmar". plazo: texto o null.
+const ZONAS = [
+  { id: "retiro", nombre: "Retiro / punto de encuentro", costo: 0, plazo: null },
+  { id: "caba", nombre: "CABA", costo: null, plazo: null },
+  { id: "gba", nombre: "Gran Buenos Aires", costo: null, plazo: null },
+  { id: "interior", nombre: "Resto del país (Andreani / OCA)", costo: null, plazo: null },
+];
+
+// Opcional: agregá linkMP: "https://mpago.la/..." a un producto para habilitar el botón de pago directo.
 // uso: "teletrabajo" | "oficina" | "ambos". precio: número o null (muestra "Consultar precio")
 // IMPORTANTE: cada id debe ser único y no cambiarlo una vez publicado.
 const PRODUCTS = [
@@ -32,6 +49,8 @@ const $ = (sel) => document.querySelector(sel);
 const waLink = (texto) => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`;
 const formatoPrecio = (p) => (p == null ? "Consultar precio" : `$${p.toLocaleString("es-AR")}`);
 const buscar = (id) => CATALOGO.find((x) => x.id === id);
+const zonaActual = () => ZONAS.find((z) => z.id === $("#cart-zona").value) || ZONAS[0];
+const textoCosto = (z) => (z.costo == null ? "A confirmar" : z.costo === 0 ? "Sin costo" : formatoPrecio(z.costo));
 
 // ---------- Carrito: datos ----------
 function cargarCarrito() {
@@ -176,7 +195,35 @@ function renderCarrito() {
   $("#cart-empty").hidden = !vacio;
   $("#cart-count").textContent = totalUnidades();
   const total = calcularTotal();
-  $("#cart-total").textContent = vacio ? "" : total == null ? "Total: a confirmar por WhatsApp" : `Total: ${formatoPrecio(total)}`;
+  const z = zonaActual();
+  $("#cart-envio").textContent = vacio ? "" : `Envío (${z.nombre}): ${textoCosto(z)}`;
+  const totalFinal = total == null || z.costo == null ? null : total + z.costo;
+  $("#cart-total").textContent = vacio ? "" : totalFinal == null ? "Total: a confirmar por WhatsApp" : `Total: ${formatoPrecio(totalFinal)}`;
+
+  // Botón de pago directo: solo si hay un único producto, 1 unidad, con linkMP y precio final conocido
+  const ids = Object.keys(carrito);
+  const unico = ids.length === 1 && carrito[ids[0]] === 1 ? buscar(ids[0]) : null;
+  $("#cart-mp").hidden = !(unico && unico.linkMP && z.costo != null);
+}
+
+// ---------- Zonas de entrega ----------
+function renderZonas() {
+  const cuerpo = $("#zonas-body");
+  const select = $("#cart-zona");
+  ZONAS.forEach((z) => {
+    const tr = document.createElement("tr");
+    [z.nombre, z.plazo || "A confirmar", textoCosto(z)].forEach((t) => {
+      const td = document.createElement("td");
+      td.textContent = t;
+      tr.append(td);
+    });
+    cuerpo.append(tr);
+    const op = document.createElement("option");
+    op.value = z.id;
+    op.textContent = z.nombre;
+    select.append(op);
+  });
+  select.addEventListener("change", renderCarrito);
 }
 
 // ---------- Carrito: abrir, cerrar y enviar ----------
@@ -206,7 +253,9 @@ function armarMensaje() {
   return [
     `Hola, soy ${nombre}. Quiero hacer este pedido:`,
     ...lineas,
-    total == null ? "Total: a confirmar." : `Total estimado: ${formatoPrecio(total)}.`,
+    `Entrega: ${zonaActual().nombre} (envío: ${textoCosto(zonaActual())}).`,
+    `Medio de pago: ${$("#cart-pago").value}.`,
+    total == null ? "Total: a confirmar." : `Total de productos: ${formatoPrecio(total)}.`,
     nota ? `Notas: ${nota}` : "",
   ].filter(Boolean).join("\n");
 }
@@ -223,7 +272,27 @@ function enviarPedido() {
     return;
   }
   error.textContent = "";
+  if (CONFIG.checkoutUrl && $("#cart-pago").value === "Mercado Pago") return pagarOnline(error);
   window.open(waLink(armarMensaje()), "_blank", "noopener");
+}
+
+// Fase 2: tu función serverless recibe el pedido, crea la preferencia de Mercado Pago y devuelve { url }.
+async function pagarOnline(error) {
+  try {
+    const items = Object.entries(carrito).map(([id, q]) => ({ id, cantidad: q }));
+    const r = await fetch(CONFIG.checkoutUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items, zona: zonaActual().id, nombre: $("#cart-nombre").value.trim(), nota: $("#cart-nota").value.trim() }),
+    });
+    const datos = await r.json();
+    if (!r.ok || !datos.url) throw new Error("Respuesta inválida");
+    window.location.href = datos.url;
+  } catch (err) {
+    console.warn("Falló el pago online:", err);
+    error.textContent = "No pudimos iniciar el pago. Enviá el pedido por WhatsApp.";
+    window.open(waLink(armarMensaje()), "_blank", "noopener");
+  }
 }
 
 function iniciarCarrito() {
@@ -231,6 +300,10 @@ function iniciarCarrito() {
   $("#cart-close").addEventListener("click", cerrarCarrito);
   $("#overlay").addEventListener("click", cerrarCarrito);
   $("#cart-send").addEventListener("click", enviarPedido);
+  $("#cart-mp").addEventListener("click", () => {
+    const id = Object.keys(carrito)[0];
+    window.open(buscar(id).linkMP, "_blank", "noopener");
+  });
   $("#cart-clear").addEventListener("click", () => {
     carrito = {};
     guardarCarrito();
@@ -273,12 +346,38 @@ function iniciarFormulario() {
   });
 }
 
+// ---------- Título de la pestaña cuando la persona se va ----------
+function iniciarTituloAusente() {
+  if (!CONFIG.titulosAusente.length) return;
+  const original = document.title;
+  let reloj = null;
+  let i = 0;
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      reloj = setInterval(() => {
+        const frases = totalUnidades() > 0 ? ["Dejaste productos en tu pedido", ...CONFIG.titulosAusente] : CONFIG.titulosAusente;
+        document.title = i % 2 === 0 ? frases[(i / 2) % frases.length] : original;
+        i++;
+      }, 2000);
+    } else {
+      clearInterval(reloj);
+      document.title = original;
+      i = 0;
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   carrito = cargarCarrito();
+  const promo = $("#promo");
+  promo.textContent = CONFIG.promo;
+  promo.hidden = !CONFIG.promo;
   $("#year").textContent = new Date().getFullYear();
   renderFiltros();
   renderProductos();
   renderKits();
+  renderZonas();
+  iniciarTituloAusente();
   iniciarMenu();
   iniciarFormulario();
   iniciarCarrito();
